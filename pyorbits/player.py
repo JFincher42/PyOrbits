@@ -4,6 +4,7 @@ Player object for Pyorbits game
 
 import arcade
 import pymunk
+import pathlib
 
 # Constants
 SCREEN_WIDTH = 800
@@ -12,14 +13,16 @@ SCREEN_TITLE = "PyOrbits!"
 
 
 # Classes
-class Rocks(arcade.Sprite):
+class Rock(arcade.Sprite):
     """Encapsulates a Rock object for PyOrbits.
     Used for both the player object and planets it orbits.
 
     Assumes Pymunk physics in use
     """
 
-    def __init__(self, path_to_sprite:str, physics_body: pymunk.Body, angular_velocity: int = 0) -> None:
+    def __init__(
+        self, path_to_sprite: str, physics_body: pymunk.Body, angular_velocity: int = 0
+    ) -> None:
         """Initialize the Rock
 
         Args:
@@ -28,26 +31,35 @@ class Rocks(arcade.Sprite):
             angular_velocity (int): How fast to spin the sprite (rad/min)
         """
 
-        super.__init__(path_to_sprite, center_x=physics_body.body.position.x, center_y=physics_body.body.position.y)
+        super.__init__(
+            path_to_sprite,
+            center_x=physics_body.body.position.x,
+            center_y=physics_body.body.position.y,
+        )
         self.physics_body = physics_body
         self.angular_velocity = angular_velocity
         self.width = self.physics_body.radius * 2
         self.height = self.physics_body.radius * 2
 
+
 class GameView(arcade.View):
-    """The main game view
-    """
+    """The main game view"""
 
     def __init__(self):
         super.__init__()
 
-        # Setup a 
+        self.level = 1
+
+
+    def setup(self)
+        # Setup the current level
+        self.planets = []
+        planet1 = Rock()
+
 
 if __name__ == "__main__":
-    window = arcade.Window(
-        width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE
-    )
+    window = arcade.Window(width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE)
     game_view = GameView()
-    # game_view.setup()
+    game_view.setup()
     window.show_view(game_view)
     arcade.run()
