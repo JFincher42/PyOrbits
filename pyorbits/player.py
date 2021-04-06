@@ -69,7 +69,7 @@ class GameView(arcade.View):
         self.player.center_y = 600
 
         # Initial force
-        self.initial_force = (-100,-200)
+        self.initial_impulse = (-500,0)
 
         # Add the player.
         # For the player, we set the damping to a lower value, which increases
@@ -83,7 +83,7 @@ class GameView(arcade.View):
         # by damping.
         self.physics_engine.add_sprite(self.player,
                                        friction=0,
-                                       mass=10,
+                                       mass=100,
                                        moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
                                        collision_type="player",
                                        max_horizontal_velocity=2000,
@@ -98,25 +98,52 @@ class GameView(arcade.View):
         planet1 = arcade.Sprite(SPRITE_PATH / "rock.png")
         planet1.center_x = 400
         planet1.center_y = 400
+        planet1.mass = 10000.0
         self.planets.append(planet1)
 
         self.physics_engine.add_sprite_list(self.planets,
-                                            mass=100000,
-                                            friction=0,
+                                            mass=10000.0,
+                                            friction=0.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC
                                             )
 
     def on_draw(self):
         arcade.start_render()
         self.player.draw()
-        self.planets.draw()
+        self.player.draw_hit_box(color=arcade.color.WHITE)
+
+        for planet in self.planets:
+            planet.draw()
+            planet.draw_hit_box(color=arcade.color.WHITE)
 
     def on_update(self, delta_time):
         """ Movement and game logic """
-        if self.initial_force:
-            self.physics_engine.apply_impulse(self.player, self.initial_force)
+        if self.initial_impulse:
+            self.physics_engine.apply_impulse(self.player, self.initial_impulse)
             self.physics_engine.set_friction(self.player, 0)
-            self.initial_force = None
+            self.initial_impulse = None
+
+        # Figure out gravity 
+        player_pos = self.physics_engine.get_physics_object(self.player).body.position
+        player_mass = self.physics_engine.get_physics_object(self.player).body.mass
+
+        # print(f"Player pos: ({player_pos.x}, {player_pos.y}), Player mass: {player_mass}")
+        
+        grav = pymunk.Vec2d(0,0)
+        # print(f"Gravity: ({grav.x}, {grav.y})")
+
+        for planet in self.planets:
+            planet_pos = self.physics_engine.get_physics_object(planet).body.position
+            # planet_mass = self.physics_engine.get_physics_object(planet).body.mass
+            planet_mass = planet.mass
+            # print(f"  Planet pos: ({planet_pos.x}, {planet_pos.y}), Planet mass: {planet_mass}")
+            # print(f"  Distance: {player_pos.get_dist_sqrd(planet_pos)}")
+            grav_force = (planet_mass * player_mass) / player_pos.get_dist_sqrd(planet_pos)
+            # print(f"  Grav Force: {grav_force}")
+            grav += grav_force * (planet_pos - player_pos).normalized()
+
+        # print(f"Gravity: ({grav.x}, {grav.y})")
+        self.physics_engine.apply_impulse(self.player, grav)
         self.physics_engine.step()
 
 
