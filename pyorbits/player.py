@@ -11,6 +11,9 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
 SCREEN_TITLE = "PyOrbits!"
 
+# Gravitational constant
+G = 10
+
 # Paths to things
 ASSETS_PATH = pathlib.Path(__file__).resolve().parent.parent / "assets"
 SPRITE_PATH = ASSETS_PATH / "sprites"
@@ -69,7 +72,7 @@ class GameView(arcade.View):
         self.player.center_y = 600
 
         # Initial force
-        self.initial_impulse = (-500,0)
+        self.initial_impulse = (-10000,0)
 
         # Add the player.
         # For the player, we set the damping to a lower value, which increases
@@ -83,7 +86,7 @@ class GameView(arcade.View):
         # by damping.
         self.physics_engine.add_sprite(self.player,
                                        friction=0,
-                                       mass=100,
+                                       mass=500,
                                        moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
                                        collision_type="player",
                                        max_horizontal_velocity=2000,
@@ -102,7 +105,6 @@ class GameView(arcade.View):
         self.planets.append(planet1)
 
         self.physics_engine.add_sprite_list(self.planets,
-                                            mass=10000.0,
                                             friction=0.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC
                                             )
@@ -138,12 +140,13 @@ class GameView(arcade.View):
             planet_mass = planet.mass
             # print(f"  Planet pos: ({planet_pos.x}, {planet_pos.y}), Planet mass: {planet_mass}")
             # print(f"  Distance: {player_pos.get_dist_sqrd(planet_pos)}")
-            grav_force = (planet_mass * player_mass) / player_pos.get_dist_sqrd(planet_pos)
+            grav_force = G * (planet_mass * player_mass) / player_pos.get_dist_sqrd(planet_pos)
             # print(f"  Grav Force: {grav_force}")
             grav += grav_force * (planet_pos - player_pos).normalized()
 
         # print(f"Gravity: ({grav.x}, {grav.y})")
-        self.physics_engine.apply_impulse(self.player, grav)
+        self.physics_engine.apply_force(self.player, grav)
+        # input()
         self.physics_engine.step()
 
 
