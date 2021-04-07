@@ -72,7 +72,7 @@ class GameView(arcade.View):
         self.player.center_y = 600
 
         # Initial force
-        self.initial_impulse = (-10000,0)
+        self.initial_impulse = pymunk.Vec2d(-20000,6000)
 
         # Add the player.
         # For the player, we set the damping to a lower value, which increases
@@ -86,11 +86,11 @@ class GameView(arcade.View):
         # by damping.
         self.physics_engine.add_sprite(self.player,
                                        friction=0,
-                                       mass=500,
+                                       mass=200,
                                        moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
                                        collision_type="player",
-                                       max_horizontal_velocity=2000,
-                                       max_vertical_velocity=2000,
+                                    #    max_horizontal_velocity=2000,
+                                    #    max_vertical_velocity=2000,
                                        radius=20.0)
 
     def setup(self):
@@ -98,11 +98,23 @@ class GameView(arcade.View):
         # Setup the current level
         self.planets = arcade.SpriteList()
 
-        planet1 = arcade.Sprite(SPRITE_PATH / "rock.png")
-        planet1.center_x = 400
-        planet1.center_y = 400
-        planet1.mass = 10000.0
+        planet1 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
+        planet1.center_x = 200
+        planet1.center_y = 200
+        planet1.mass = 35000.0
         self.planets.append(planet1)
+
+        planet2 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
+        planet2.center_x = 200
+        planet2.center_y = 600
+        planet2.mass = 50000.0
+        self.planets.append(planet2)
+
+        planet3 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
+        planet3.center_x = 600
+        planet3.center_y = 200
+        planet3.mass = 75000.0
+        self.planets.append(planet3)
 
         self.physics_engine.add_sprite_list(self.planets,
                                             friction=0.0,
@@ -121,6 +133,7 @@ class GameView(arcade.View):
     def on_update(self, delta_time):
         """ Movement and game logic """
         if self.initial_impulse:
+            print(f"Impulse: {self.initial_impulse}")
             self.physics_engine.apply_impulse(self.player, self.initial_impulse)
             self.physics_engine.set_friction(self.player, 0)
             self.initial_impulse = None
