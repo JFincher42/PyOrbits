@@ -19,7 +19,6 @@ ASSETS_PATH = pathlib.Path(__file__).resolve().parent.parent / "assets"
 SPRITE_PATH = ASSETS_PATH / "sprites"
 
 
-
 # Classes
 class Rock(arcade.Sprite):
     """Encapsulates a Rock object for PyOrbits.
@@ -29,25 +28,25 @@ class Rock(arcade.Sprite):
     """
 
     def __init__(
-        self, path_to_sprite: str, physics_body: pymunk.Body, angular_velocity: int = 0
+        self, path_to_sprite: str, position: tuple, mass: float, scale: float = 1.0
     ) -> None:
         """Initialize the Rock
 
         Args:
             path_to_sprite (str): Where is our sprite image
-            physics_body (pymunk.Body): The pymunk physics body represented by this sprite
-            angular_velocity (int): How fast to spin the sprite (rad/min)
+            position (tuple): Where to place the rock
+            mass (float): How big is the rock
+            scale (float): scaling factor
         """
 
         super.__init__(
             path_to_sprite,
-            center_x=physics_body.body.position.x,
-            center_y=physics_body.body.position.y,
+            center_x=position[0]
+            center_y=position[1]
+            scale=scale
         )
-        self.physics_body = physics_body
-        self.angular_velocity = angular_velocity
-        self.width = self.physics_body.radius * 2
-        self.height = self.physics_body.radius * 2
+
+        # TODO: Add sprite to physics engine, reset collision shape
 
 
 class GameView(arcade.View):
