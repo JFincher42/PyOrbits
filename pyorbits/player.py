@@ -5,6 +5,7 @@ Player object for Pyorbits game
 import arcade
 import pymunk
 import pathlib
+from enum import Enum
 
 # Constants
 SCREEN_WIDTH = 800
@@ -17,6 +18,15 @@ G = 10
 # Paths to things
 ASSETS_PATH = pathlib.Path(__file__).resolve().parent.parent / "assets"
 SPRITE_PATH = ASSETS_PATH / "sprites"
+
+# Player states
+class PlayerStates(Enum):
+    WAITING = 1
+    DRAGGING = 2
+    DROPPED = 3
+    FLYING = 4
+    CRASHED = 5
+    FINISH = 6
 
 
 # Classes
@@ -41,12 +51,12 @@ class Rock(arcade.Sprite):
 
         super.__init__(
             path_to_sprite,
-            center_x=position[0]
-            center_y=position[1]
+            center_x=position[0],
+            center_y=position[1],
             scale=scale
         )
 
-        # TODO: Add sprite to physics engine, reset collision shape
+        self.mass = mass
 
 
 class GameView(arcade.View):
@@ -69,6 +79,7 @@ class GameView(arcade.View):
         self.player = arcade.Sprite(SPRITE_PATH / "tundra.png", scale=0.2)
         self.player.center_x = 600
         self.player.center_y = 600
+        self.player.state = PlayerStates.WAITING
 
         # Initial force
         self.initial_impulse = pymunk.Vec2d(-20000,6000)
@@ -120,6 +131,27 @@ class GameView(arcade.View):
                                             body_type=arcade.PymunkPhysicsEngine.STATIC
                                             )
 
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+        if (
+            self.player.state == PlayerStates.WAITING
+            and arcade.is_point_in_polygon(
+                x, y, self.player.get_adjusted_hit_box()
+            )
+        ):
+            player_obj = self.physics_engine.get_physics_object(self.player)
+            player_obj.body_type = arcade.PymunkPhysicsEngine.KINEMATIC
+            self.player.state = PlayerStates.DRAGGING
+
+    def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
+        if self.player.state == PlayerStates.DRAGGING:
+            self.physics_engine.set_position(self.player, (x,y))
+
+    def on_mouse_release(self, x: float, y: float, button: int, modifiers: int):
+        if self.player.state == PlayerStates.DRAGGING:
+            player_obj = self.physics_engine.get_physics_object(self.player)
+            player_obj.body_type = arcade.PymunkPhysicsEngine.DYNAMIC           
+            self.player.state = PlayerStates.DROPPED
+
     def on_draw(self):
         arcade.start_render()
         self.player.draw()
@@ -131,34 +163,43 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time):
         """ Movement and game logic """
-        if self.initial_impulse:
-            print(f"Impulse: {self.initial_impulse}")
+
+        if self.player.state == PlayerStates.WAITING:
+            # Before the level starts
+            pass
+
+        elif self.player.state == PlayerStates.DRAGGING:
+            pass
+
+        elif self.player.state == PlayerStates.DROPPED:       
             self.physics_engine.apply_impulse(self.player, self.initial_impulse)
             self.physics_engine.set_friction(self.player, 0)
-            self.initial_impulse = None
+            self.player.state = PlayerStates.FLYING
 
-        # Figure out gravity 
-        player_pos = self.physics_engine.get_physics_object(self.player).body.position
-        player_mass = self.physics_engine.get_physics_object(self.player).body.mass
-
-        # print(f"Player pos: ({player_pos.x}, {player_pos.y}), Player mass: {player_mass}")
+        elif self.player.state == PlayerStates.FLYING:
+            # Figure out gravity 
+            player_pos = self.physics_engine.get_physics_object(self.player).body.position
+            player_mass = self.physics_engine.get_physics_object(self.player).body.mass
         
-        grav = pymunk.Vec2d(0,0)
-        # print(f"Gravity: ({grav.x}, {grav.y})")
+            grav = pymunk.Vec2d(0,0)
 
-        for planet in self.planets:
-            planet_pos = self.physics_engine.get_physics_object(planet).body.position
-            # planet_mass = self.physics_engine.get_physics_object(planet).body.mass
-            planet_mass = planet.mass
-            # print(f"  Planet pos: ({planet_pos.x}, {planet_pos.y}), Planet mass: {planet_mass}")
-            # print(f"  Distance: {player_pos.get_dist_sqrd(planet_pos)}")
-            grav_force = G * (planet_mass * player_mass) / player_pos.get_dist_sqrd(planet_pos)
-            # print(f"  Grav Force: {grav_force}")
-            grav += grav_force * (planet_pos - player_pos).normalized()
+            for planet in self.planets:
+                planet_pos = self.physics_engine.get_physics_object(planet).body.position
+                planet_mass = planet.mass
+                grav_force = G * (planet_mass * player_mass) / player_pos.get_dist_sqrd(planet_pos)
+                grav += grav_force * (planet_pos - player_pos).normalized()
 
-        # print(f"Gravity: ({grav.x}, {grav.y})")
-        self.physics_engine.apply_force(self.player, grav)
-        # input()
+            self.physics_engine.apply_force(self.player, grav)
+
+
+        elif self.player.state == PlayerStates.CRASHED:
+            # TODO: Add crash animation here
+            pass
+
+        elif self.player.state == PlayerStates.FINISH:
+            # TODO: Add level end animation here
+            pass
+
         self.physics_engine.step()
 
 
