@@ -50,7 +50,10 @@ class Rock(arcade.Sprite):
         """
 
         super.__init__(
-            path_to_sprite, center_x=position[0], center_y=position[1], scale=scale
+            path_to_sprite,
+            center_x=position[0],
+            center_y=position[1],
+            scale=scale
         )
 
         self.mass = mass
@@ -112,7 +115,7 @@ class GameView(arcade.View):
         planet1 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
         planet1.center_x = 200
         planet1.center_y = 200
-        planet1.mass = 35000.0
+        planet1.mass = 70000.0
         self.planets.append(planet1)
 
         planet2 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
@@ -124,7 +127,7 @@ class GameView(arcade.View):
         planet3 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
         planet3.center_x = 600
         planet3.center_y = 200
-        planet3.mass = 75000.0
+        planet3.mass = 80000.0
         self.planets.append(planet3)
 
         self.physics_engine.add_sprite_list(
@@ -159,8 +162,15 @@ class GameView(arcade.View):
             planet.draw()
             planet.draw_hit_box(color=arcade.color.WHITE)
 
+
     def on_update(self, delta_time):
         """ Movement and game logic """
+        if self.initial_impulse:
+            print(f"Impulse: {self.initial_impulse}")
+            self.physics_engine.apply_impulse(self.player, self.initial_impulse)
+            self.physics_engine.set_friction(self.player, 0)
+            self.initial_impulse = None
+            input()
 
         if self.player.state == PlayerStates.WAITING:
             # Before the level starts
