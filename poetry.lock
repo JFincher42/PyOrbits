@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "arcade"
-version = "2.5.5"
+version = "2.5.6"
 description = "Arcade Game Development Library"
 category = "main"
 optional = false
@@ -26,7 +26,7 @@ shapely = "1.7.1"
 [package.extras]
 build = ["pep517"]
 dev = ["pytest", "flake8", "mypy", "coverage", "coveralls", "pytest-mock", "pytest-cov"]
-docs = ["sphinx", "sphinx-sitemap", "sphinx-rtd-theme", "sphinx-copybutton"]
+docs = ["sphinx", "sphinx-sitemap", "sphinx-rtd-theme", "sphinx-copybutton", "dirsync"]
 
 [[package]]
 name = "atomicwrites"
@@ -355,7 +355,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.10"
-content-hash = "1feea0f6d5382b94b6aabfaf3ecaecb254942af139c1a7827faf6a4963d42850"
+content-hash = "d261f904d6fb37482640a3fca10a4b08aec9c2251eb2a56ce7ff96d357560b5a"
 
 [metadata.files]
 appdirs = [
@@ -363,7 +363,7 @@ appdirs = [
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
 ]
 arcade = [
-    {file = "arcade-2.5.5-py3-none-any.whl", hash = "sha256:ec44dfa7fa653c334815c04c01ca806a0f8c32fa915ad23bf92be171936360e7"},
+    {file = "arcade-2.5.6-py3-none-any.whl", hash = "sha256:75fab46869067b5275293cdcbf4c9de337521f36b62dc512f45f637f16a3c112"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},

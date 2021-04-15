@@ -50,10 +50,7 @@ class Rock(arcade.Sprite):
         """
 
         super.__init__(
-            path_to_sprite,
-            center_x=position[0],
-            center_y=position[1],
-            scale=scale
+            path_to_sprite, center_x=position[0], center_y=position[1], scale=scale
         )
 
         self.mass = mass
@@ -69,11 +66,13 @@ class GameView(arcade.View):
 
         # Gravity (0,0) is basically no external gravity acting on anything
         # Damping of 1.0 means no friction, 0.0 is max friction
-        gravity = (0,0)
+        gravity = (0, 0)
         damping = 1.0
 
         # Create the physics engine
-        self.physics_engine = arcade.PymunkPhysicsEngine(damping=damping,gravity=gravity)
+        self.physics_engine = arcade.PymunkPhysicsEngine(
+            damping=damping, gravity=gravity
+        )
 
         # Define the player sprite
         self.player = arcade.Sprite(SPRITE_PATH / "tundra.png", scale=0.2)
@@ -82,7 +81,7 @@ class GameView(arcade.View):
         self.player.state = PlayerStates.WAITING
 
         # Initial force
-        self.initial_impulse = pymunk.Vec2d(-20000,6000)
+        self.initial_impulse = pymunk.Vec2d(-20000, 6000)
 
         # Add the player.
         # For the player, we set the damping to a lower value, which increases
@@ -94,14 +93,16 @@ class GameView(arcade.View):
         # Friction is between two objects in contact. It is important to remember
         # in top-down games that friction moving along the 'floor' is controlled
         # by damping.
-        self.physics_engine.add_sprite(self.player,
-                                       friction=0,
-                                       mass=200,
-                                       moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
-                                       collision_type="player",
-                                    #    max_horizontal_velocity=2000,
-                                    #    max_vertical_velocity=2000,
-                                       radius=20.0)
+        self.physics_engine.add_sprite(
+            self.player,
+            friction=0,
+            mass=200,
+            moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+            collision_type="player",
+            #    max_horizontal_velocity=2000,
+            #    max_vertical_velocity=2000,
+            radius=20.0,
+        )
 
     def setup(self):
 
@@ -126,30 +127,27 @@ class GameView(arcade.View):
         planet3.mass = 75000.0
         self.planets.append(planet3)
 
-        self.physics_engine.add_sprite_list(self.planets,
-                                            friction=0.0,
-                                            body_type=arcade.PymunkPhysicsEngine.STATIC
-                                            )
+        self.physics_engine.add_sprite_list(
+            self.planets, friction=0.0, body_type=arcade.PymunkPhysicsEngine.STATIC
+        )
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
-        if (
-            self.player.state == PlayerStates.WAITING
-            and arcade.is_point_in_polygon(
-                x, y, self.player.get_adjusted_hit_box()
-            )
+        if self.player.state == PlayerStates.WAITING and arcade.is_point_in_polygon(
+            x, y, self.player.get_adjusted_hit_box()
         ):
-            player_obj = self.physics_engine.get_physics_object(self.player)
-            player_obj.body_type = arcade.PymunkPhysicsEngine.KINEMATIC
+            # player_obj = self.physics_engine.get_physics_object(self.player)
+            # player_obj.body_type = arcade.PymunkPhysicsEngine.KINEMATIC
             self.player.state = PlayerStates.DRAGGING
 
     def on_mouse_motion(self, x: float, y: float, dx: float, dy: float):
         if self.player.state == PlayerStates.DRAGGING:
-            self.physics_engine.set_position(self.player, (x,y))
+            # self.player.set_position(x, y)
+            self.physics_engine.set_position(self.player, (x, y))
 
     def on_mouse_release(self, x: float, y: float, button: int, modifiers: int):
         if self.player.state == PlayerStates.DRAGGING:
-            player_obj = self.physics_engine.get_physics_object(self.player)
-            player_obj.body_type = arcade.PymunkPhysicsEngine.DYNAMIC           
+            # player_obj = self.physics_engine.get_physics_object(self.player)
+            # player_obj.body_type = arcade.PymunkPhysicsEngine.DYNAMIC
             self.player.state = PlayerStates.DROPPED
 
     def on_draw(self):
@@ -171,26 +169,33 @@ class GameView(arcade.View):
         elif self.player.state == PlayerStates.DRAGGING:
             pass
 
-        elif self.player.state == PlayerStates.DROPPED:       
+        elif self.player.state == PlayerStates.DROPPED:
             self.physics_engine.apply_impulse(self.player, self.initial_impulse)
             self.physics_engine.set_friction(self.player, 0)
             self.player.state = PlayerStates.FLYING
 
         elif self.player.state == PlayerStates.FLYING:
-            # Figure out gravity 
-            player_pos = self.physics_engine.get_physics_object(self.player).body.position
+            # Figure out gravity
+            player_pos = self.physics_engine.get_physics_object(
+                self.player
+            ).body.position
             player_mass = self.physics_engine.get_physics_object(self.player).body.mass
-        
-            grav = pymunk.Vec2d(0,0)
+
+            grav = pymunk.Vec2d(0, 0)
 
             for planet in self.planets:
-                planet_pos = self.physics_engine.get_physics_object(planet).body.position
+                planet_pos = self.physics_engine.get_physics_object(
+                    planet
+                ).body.position
                 planet_mass = planet.mass
-                grav_force = G * (planet_mass * player_mass) / player_pos.get_dist_sqrd(planet_pos)
+                grav_force = (
+                    G
+                    * (planet_mass * player_mass)
+                    / player_pos.get_dist_sqrd(planet_pos)
+                )
                 grav += grav_force * (planet_pos - player_pos).normalized()
 
             self.physics_engine.apply_force(self.player, grav)
-
 
         elif self.player.state == PlayerStates.CRASHED:
             # TODO: Add crash animation here
