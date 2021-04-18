@@ -75,7 +75,7 @@ class GameView(arcade.View):
         )
 
         # Define the player sprite
-        self.player = arcade.Sprite(SPRITE_PATH / "tundra.png", scale=0.2)
+        self.player = arcade.Sprite(SPRITE_PATH / "ball.png")
         self.player.center_x = 600
         self.player.center_y = 600
         self.player.state = PlayerStates.WAITING
@@ -109,19 +109,19 @@ class GameView(arcade.View):
         # Setup the current level
         self.planets = arcade.SpriteList()
 
-        planet1 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
+        planet1 = arcade.Sprite(SPRITE_PATH / "planet.png")
         planet1.center_x = 200
         planet1.center_y = 200
         planet1.mass = 35000.0
         self.planets.append(planet1)
 
-        planet2 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
+        planet2 = arcade.Sprite(SPRITE_PATH / "planet.png")
         planet2.center_x = 200
         planet2.center_y = 600
         planet2.mass = 50000.0
         self.planets.append(planet2)
 
-        planet3 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
+        planet3 = arcade.Sprite(SPRITE_PATH / "planet.png")
         planet3.center_x = 600
         planet3.center_y = 200
         planet3.mass = 75000.0
