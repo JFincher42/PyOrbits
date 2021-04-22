@@ -5,6 +5,7 @@ Player object for Pyorbits game
 import arcade
 import pymunk
 import pathlib
+import math
 from enum import Enum
 
 # Constants
@@ -76,9 +77,15 @@ class GameView(arcade.View):
 
         # Define the player sprite
         self.player = arcade.Sprite(SPRITE_PATH / "ball.png")
-        self.player.center_x = 600
+        self.player.center_x = 650
         self.player.center_y = 600
         self.player.state = PlayerStates.WAITING
+
+        # Define the launcher sprite
+        self.launcher = arcade.Sprite(SPRITE_PATH / "launcher_lite.png")
+        self.launcher.right = 600
+        self.launcher.center_y = 600
+        self.launcher.state = PlayerStates.WAITING
 
         # Initial force
         self.initial_impulse = pymunk.Vec2d(-20000, 6000)
@@ -102,6 +109,11 @@ class GameView(arcade.View):
             #    max_horizontal_velocity=2000,
             #    max_vertical_velocity=2000,
             radius=20.0,
+        )
+
+        self.physics_engine.add_sprite(
+            self.launcher,
+            body_type=arcade.PymunkPhysicsEngine.KINEMATIC
         )
 
     def setup(self):
@@ -155,6 +167,8 @@ class GameView(arcade.View):
         self.player.draw()
         self.player.draw_hit_box(color=arcade.color.WHITE)
 
+        self.launcher.draw()
+
         for planet in self.planets:
             planet.draw()
             planet.draw_hit_box(color=arcade.color.WHITE)
@@ -164,10 +178,19 @@ class GameView(arcade.View):
 
         if self.player.state == PlayerStates.WAITING:
             # Before the level starts
-            pass
+            # Calculate the angle between the launcher and the player
+            x_diff = self.launcher.center_x - self.player.center_x
+            y_diff = self.launcher.center_y - self.player.center_y
+            angle = math.atan2(y_diff, x_diff)
+            # self.launcher.angle = math.degrees(angle)
+            self.physics_engine.get_physics_object(self.launcher).body.angle = angle
 
         elif self.player.state == PlayerStates.DRAGGING:
-            pass
+            x_diff = self.launcher.center_x - self.player.center_x
+            y_diff = self.launcher.center_y - self.player.center_y
+            angle = math.atan2(y_diff, x_diff)
+            # self.launcher.angle = math.degrees(angle)
+            self.physics_engine.get_physics_object(self.launcher).body.angle = angle
 
         elif self.player.state == PlayerStates.DROPPED:
             self.physics_engine.apply_impulse(self.player, self.initial_impulse)
