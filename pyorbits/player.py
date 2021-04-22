@@ -167,6 +167,7 @@ class GameView(arcade.View):
         self.player.draw()
         self.player.draw_hit_box(color=arcade.color.WHITE)
 
+        # Set the fade
         self.launcher.draw()
 
         for planet in self.planets:
@@ -193,11 +194,23 @@ class GameView(arcade.View):
             self.physics_engine.get_physics_object(self.launcher).body.angle = angle
 
         elif self.player.state == PlayerStates.DROPPED:
-            self.physics_engine.apply_impulse(self.player, self.initial_impulse)
+            # Calculate impulse
+            x_diff = self.launcher.center_x - self.player.center_x
+            y_diff = self.launcher.center_y - self.player.center_y
+            new_impulse = pymunk.Vec2d(x_diff, y_diff)
+
+            self.physics_engine.apply_impulse(self.player, new_impulse)
             self.physics_engine.set_friction(self.player, 0)
             self.player.state = PlayerStates.FLYING
 
+            # How much time left to fade the launcher
+            self.launcher_fade_time = 2.0
+
         elif self.player.state == PlayerStates.FLYING:
+            # First, set the fade out for the launcher
+            self.launcher_fade_time = max(self.launcher_fade_time - delta_time, 0.0)
+            self.launcher.alpha = (self.launcher_fade_time / 2.0) * 255
+
             # Figure out gravity
             player_pos = self.physics_engine.get_physics_object(
                 self.player
