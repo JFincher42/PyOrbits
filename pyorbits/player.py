@@ -69,26 +69,23 @@ class GameView(arcade.View):
         # Damping of 1.0 means no friction, 0.0 is max friction
         gravity = (0, 0)
         damping = 1.0
+        self.draw_strength = 1
 
         # Create the physics engine
         self.physics_engine = arcade.PymunkPhysicsEngine(
             damping=damping, gravity=gravity
         )
 
-        # Define the player sprite
-        self.player = arcade.Sprite(SPRITE_PATH / "ball.png")
-        self.player.center_x = 650
-        self.player.center_y = 600
-        self.player.state = PlayerStates.WAITING
-
         # Define the launcher sprite
         self.launcher = arcade.Sprite(SPRITE_PATH / "launcher_lite.png")
         self.launcher.right = 600
         self.launcher.center_y = 600
-        self.launcher.state = PlayerStates.WAITING
 
-        # Initial force
-        self.initial_impulse = pymunk.Vec2d(-20000, 6000)
+        # Define the player sprite
+        self.player = arcade.Sprite(SPRITE_PATH / "ball.png")
+        self.player.center_x = self.launcher.right + 25
+        self.player.center_y = self.launcher.center_y
+        self.player.state = PlayerStates.WAITING
 
         # Add the player.
         # For the player, we set the damping to a lower value, which increases
@@ -165,10 +162,24 @@ class GameView(arcade.View):
 
     def on_draw(self):
         arcade.start_render()
+
+        # If we're dragging, we can draw a line between the launcher and the player
+        if (
+            self.player.state == PlayerStates.DRAGGING
+            or self.player.state == PlayerStates.WAITING
+        ):
+            arcade.draw_line(
+                self.launcher.center_x,
+                self.launcher.center_y,
+                self.player.center_x,
+                self.player.center_y,
+                color=arcade.color.CANARY_YELLOW,
+                line_width=self.draw_strength,
+            )
         self.player.draw()
         self.player.draw_hit_box(color=arcade.color.WHITE)
 
-        # Set the fade
+        # Draw the launcher, even if it's faded
         self.launcher.draw()
 
         for planet in self.planets:
@@ -191,8 +202,11 @@ class GameView(arcade.View):
             x_diff = self.launcher.center_x - self.player.center_x
             y_diff = self.launcher.center_y - self.player.center_y
             angle = math.atan2(y_diff, x_diff)
-            # self.launcher.angle = math.degrees(angle)
             self.physics_engine.get_physics_object(self.launcher).body.angle = angle
+
+            x_diff = self.launcher.center_x - self.player.center_x
+            y_diff = self.launcher.center_y - self.player.center_y
+            self.draw_strength = pymunk.Vec2d(x_diff, y_diff).length / 20
 
         elif self.player.state == PlayerStates.DROPPED:
             # Calculate impulse
