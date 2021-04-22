@@ -113,7 +113,8 @@ class GameView(arcade.View):
 
         self.physics_engine.add_sprite(
             self.launcher,
-            body_type=arcade.PymunkPhysicsEngine.KINEMATIC
+            body_type=arcade.PymunkPhysicsEngine.KINEMATIC,
+            collision_type="none",
         )
 
     def setup(self):
@@ -197,7 +198,7 @@ class GameView(arcade.View):
             # Calculate impulse
             x_diff = self.launcher.center_x - self.player.center_x
             y_diff = self.launcher.center_y - self.player.center_y
-            new_impulse = pymunk.Vec2d(x_diff, y_diff)
+            new_impulse = pymunk.Vec2d(x_diff * 250, y_diff * 250)
 
             self.physics_engine.apply_impulse(self.player, new_impulse)
             self.physics_engine.set_friction(self.player, 0)
@@ -206,32 +207,16 @@ class GameView(arcade.View):
             # How much time left to fade the launcher
             self.launcher_fade_time = 2.0
 
+            # Make the launcher invisible to collisions
+            self.physics_engine.remove_sprite(self.launcher)
+
         elif self.player.state == PlayerStates.FLYING:
             # First, set the fade out for the launcher
             self.launcher_fade_time = max(self.launcher_fade_time - delta_time, 0.0)
             self.launcher.alpha = (self.launcher_fade_time / 2.0) * 255
 
             # Figure out gravity
-            player_pos = self.physics_engine.get_physics_object(
-                self.player
-            ).body.position
-            player_mass = self.physics_engine.get_physics_object(self.player).body.mass
-
-            grav = pymunk.Vec2d(0, 0)
-
-            for planet in self.planets:
-                planet_pos = self.physics_engine.get_physics_object(
-                    planet
-                ).body.position
-                planet_mass = planet.mass
-                grav_force = (
-                    G
-                    * (planet_mass * player_mass)
-                    / player_pos.get_dist_sqrd(planet_pos)
-                )
-                grav += grav_force * (planet_pos - player_pos).normalized()
-
-            self.physics_engine.apply_force(self.player, grav)
+            self.physics_engine.apply_force(self.player, self.calculate_gravity())
 
         elif self.player.state == PlayerStates.CRASHED:
             # TODO: Add crash animation here
@@ -242,6 +227,20 @@ class GameView(arcade.View):
             pass
 
         self.physics_engine.step()
+
+    def calculate_gravity(self):
+        player_pos = self.physics_engine.get_physics_object(self.player).body.position
+        player_mass = self.physics_engine.get_physics_object(self.player).body.mass
+        grav = pymunk.Vec2d(0, 0)
+
+        for planet in self.planets:
+            planet_pos = self.physics_engine.get_physics_object(planet).body.position
+            planet_mass = planet.mass
+            grav_force = (
+                G * (planet_mass * player_mass) / player_pos.get_dist_sqrd(planet_pos)
+            )
+            grav += grav_force * (planet_pos - player_pos).normalized()
+        return grav
 
 
 if __name__ == "__main__":
