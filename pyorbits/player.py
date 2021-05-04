@@ -9,12 +9,12 @@ import math
 from enum import Enum
 
 # Constants
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 960
+SCREEN_HEIGHT = 540
 SCREEN_TITLE = "PyOrbits!"
 
 # Gravitational constant
-G = 10
+G = 20
 
 # Paths to things
 ASSETS_PATH = pathlib.Path(__file__).resolve().parent.parent / "assets"
@@ -38,6 +38,10 @@ class GameView(arcade.View):
 
         self.level = 1
 
+        # Get the background image
+        self.background_image = arcade.load_texture(ASSETS_PATH / "backgrounds" / "BlueStars.png")
+        self.background_color = arcade.color.DARK_MIDNIGHT_BLUE
+
         # Gravity (0,0) is basically no external gravity acting on anything
         # Damping of 1.0 means no friction, 0.0 is max friction
         gravity = (0, 0)
@@ -51,14 +55,17 @@ class GameView(arcade.View):
 
         # Define the launcher sprite
         self.launcher = arcade.Sprite(SPRITE_PATH / "launcher_lite.png")
-        self.launcher.right = 600
-        self.launcher.center_y = 600
+        self.launcher.right = 800
+        self.launcher.center_y = 450
 
         # Define the player sprite
         self.player = arcade.Sprite(SPRITE_PATH / "ball.png")
         self.player.center_x = self.launcher.right + 25
         self.player.center_y = self.launcher.center_y
         self.player.state = PlayerStates.WAITING
+        self.player.on_screen = True
+
+        # Define a pointing arrow sprite
 
         # Add the player.
         # For the player, we set the damping to a lower value, which increases
@@ -99,13 +106,13 @@ class GameView(arcade.View):
         self.planets.append(planet1)
 
         planet2 = arcade.Sprite(SPRITE_PATH / "planet.png")
-        planet2.center_x = 200
-        planet2.center_y = 600
+        planet2.center_x = 500
+        planet2.center_y = 400
         planet2.mass = 80000.0
         self.planets.append(planet2)
 
         planet3 = arcade.Sprite(SPRITE_PATH / "planet.png")
-        planet3.center_x = 600
+        planet3.center_x = 800
         planet3.center_y = 200
         planet3.mass = 75000.0
         self.planets.append(planet3)
@@ -136,6 +143,10 @@ class GameView(arcade.View):
     def on_draw(self):
         arcade.start_render()
 
+        # Draw the background image
+        arcade.set_background_color(self.background_color)
+        arcade.draw_lrwh_rectangle_textured(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, self.background_image)
+
         # If we're dragging, we can draw a line between the launcher and the player
         if (
             self.player.state == PlayerStates.DRAGGING
@@ -149,6 +160,10 @@ class GameView(arcade.View):
                 color=arcade.color.CANARY_YELLOW,
                 line_width=self.draw_strength,
             )
+
+        # Is the player even on screen? If not, we draw an arrow pointing to them
+        # if not self.player.on_screen:
+
         self.player.draw()
         self.player.draw_hit_box(color=arcade.color.WHITE)
 
@@ -204,6 +219,14 @@ class GameView(arcade.View):
 
             # Figure out gravity
             self.physics_engine.apply_force(self.player, self.calculate_gravity())
+
+            # See if the player is on-screen or not
+            self.player.on_screen = (
+                self.player.top < 0
+                or self.player.bottom > SCREEN_HEIGHT
+                or self.player.left < 0
+                or self.player.right > SCREEN_WIDTH
+            )
 
         elif self.player.state == PlayerStates.CRASHED:
             # TODO: Add crash animation here
