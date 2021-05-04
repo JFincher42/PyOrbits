@@ -5,15 +5,16 @@ Player object for Pyorbits game
 import arcade
 import pymunk
 import pathlib
+import math
 from enum import Enum
 
 # Constants
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 960
+SCREEN_HEIGHT = 540
 SCREEN_TITLE = "PyOrbits!"
 
 # Gravitational constant
-G = 10
+G = 20
 
 # Paths to things
 ASSETS_PATH = pathlib.Path(__file__).resolve().parent.parent / "assets"
@@ -29,6 +30,7 @@ class PlayerStates(Enum):
     FINISH = 6
 
 
+<<<<<<< HEAD
 # Classes
 class Rock(arcade.Sprite):
     """Encapsulates a Rock object for PyOrbits.
@@ -59,6 +61,8 @@ class Rock(arcade.Sprite):
         self.mass = mass
 
 
+=======
+>>>>>>> player_drag
 class GameView(arcade.View):
     """The main game view"""
 
@@ -67,24 +71,34 @@ class GameView(arcade.View):
 
         self.level = 1
 
+        # Get the background image
+        self.background_image = arcade.load_texture(ASSETS_PATH / "backgrounds" / "BlueStars.png")
+        self.background_color = arcade.color.DARK_MIDNIGHT_BLUE
+
         # Gravity (0,0) is basically no external gravity acting on anything
         # Damping of 1.0 means no friction, 0.0 is max friction
         gravity = (0, 0)
         damping = 1.0
+        self.draw_strength = 1
 
         # Create the physics engine
         self.physics_engine = arcade.PymunkPhysicsEngine(
             damping=damping, gravity=gravity
         )
 
-        # Define the player sprite
-        self.player = arcade.Sprite(SPRITE_PATH / "tundra.png", scale=0.2)
-        self.player.center_x = 600
-        self.player.center_y = 600
-        self.player.state = PlayerStates.WAITING
+        # Define the launcher sprite
+        self.launcher = arcade.Sprite(SPRITE_PATH / "launcher_lite.png")
+        self.launcher.right = 800
+        self.launcher.center_y = 450
 
-        # Initial force
-        self.initial_impulse = pymunk.Vec2d(-20000, 6000)
+        # Define the player sprite
+        self.player = arcade.Sprite(SPRITE_PATH / "ball.png")
+        self.player.center_x = self.launcher.right + 25
+        self.player.center_y = self.launcher.center_y
+        self.player.state = PlayerStates.WAITING
+        self.player.on_screen = True
+
+        # Define a pointing arrow sprite
 
         # Add the player.
         # For the player, we set the damping to a lower value, which increases
@@ -107,25 +121,35 @@ class GameView(arcade.View):
             radius=20.0,
         )
 
+        self.physics_engine.add_sprite(
+            self.launcher,
+            body_type=arcade.PymunkPhysicsEngine.KINEMATIC,
+            collision_type="none",
+        )
+
     def setup(self):
 
         # Setup the current level
         self.planets = arcade.SpriteList()
 
-        planet1 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
+        planet1 = arcade.Sprite(SPRITE_PATH / "planet.png")
         planet1.center_x = 200
         planet1.center_y = 200
+<<<<<<< HEAD
         planet1.mass = 70000.0
+=======
+        planet1.mass = 95000.0
+>>>>>>> player_drag
         self.planets.append(planet1)
 
-        planet2 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
-        planet2.center_x = 200
-        planet2.center_y = 600
-        planet2.mass = 50000.0
+        planet2 = arcade.Sprite(SPRITE_PATH / "planet.png")
+        planet2.center_x = 500
+        planet2.center_y = 400
+        planet2.mass = 80000.0
         self.planets.append(planet2)
 
-        planet3 = arcade.Sprite(SPRITE_PATH / "rock.png", scale=0.5)
-        planet3.center_x = 600
+        planet3 = arcade.Sprite(SPRITE_PATH / "planet.png")
+        planet3.center_x = 800
         planet3.center_y = 200
         planet3.mass = 80000.0
         self.planets.append(planet3)
@@ -155,8 +179,33 @@ class GameView(arcade.View):
 
     def on_draw(self):
         arcade.start_render()
+
+        # Draw the background image
+        arcade.set_background_color(self.background_color)
+        arcade.draw_lrwh_rectangle_textured(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, self.background_image)
+
+        # If we're dragging, we can draw a line between the launcher and the player
+        if (
+            self.player.state == PlayerStates.DRAGGING
+            or self.player.state == PlayerStates.WAITING
+        ):
+            arcade.draw_line(
+                self.launcher.center_x,
+                self.launcher.center_y,
+                self.player.center_x,
+                self.player.center_y,
+                color=arcade.color.CANARY_YELLOW,
+                line_width=self.draw_strength,
+            )
+
+        # Is the player even on screen? If not, we draw an arrow pointing to them
+        # if not self.player.on_screen:
+
         self.player.draw()
         self.player.draw_hit_box(color=arcade.color.WHITE)
+
+        # Draw the launcher, even if it's faded
+        self.launcher.draw()
 
         for planet in self.planets:
             planet.draw()
@@ -174,38 +223,54 @@ class GameView(arcade.View):
 
         if self.player.state == PlayerStates.WAITING:
             # Before the level starts
-            pass
+            # Calculate the angle between the launcher and the player
+            x_diff = self.launcher.center_x - self.player.center_x
+            y_diff = self.launcher.center_y - self.player.center_y
+            angle = math.atan2(y_diff, x_diff)
+            # self.launcher.angle = math.degrees(angle)
+            self.physics_engine.get_physics_object(self.launcher).body.angle = angle
 
         elif self.player.state == PlayerStates.DRAGGING:
-            pass
+            x_diff = self.launcher.center_x - self.player.center_x
+            y_diff = self.launcher.center_y - self.player.center_y
+            angle = math.atan2(y_diff, x_diff)
+            self.physics_engine.get_physics_object(self.launcher).body.angle = angle
+
+            x_diff = self.launcher.center_x - self.player.center_x
+            y_diff = self.launcher.center_y - self.player.center_y
+            self.draw_strength = pymunk.Vec2d(x_diff, y_diff).length / 20
 
         elif self.player.state == PlayerStates.DROPPED:
-            self.physics_engine.apply_impulse(self.player, self.initial_impulse)
+            # Calculate impulse
+            x_diff = self.launcher.center_x - self.player.center_x
+            y_diff = self.launcher.center_y - self.player.center_y
+            new_impulse = pymunk.Vec2d(x_diff * 250, y_diff * 250)
+
+            self.physics_engine.apply_impulse(self.player, new_impulse)
             self.physics_engine.set_friction(self.player, 0)
             self.player.state = PlayerStates.FLYING
 
+            # How much time left to fade the launcher
+            self.launcher_fade_time = 2.0
+
+            # Make the launcher invisible to collisions
+            self.physics_engine.remove_sprite(self.launcher)
+
         elif self.player.state == PlayerStates.FLYING:
+            # First, set the fade out for the launcher
+            self.launcher_fade_time = max(self.launcher_fade_time - delta_time, 0.0)
+            self.launcher.alpha = (self.launcher_fade_time / 2.0) * 255
+
             # Figure out gravity
-            player_pos = self.physics_engine.get_physics_object(
-                self.player
-            ).body.position
-            player_mass = self.physics_engine.get_physics_object(self.player).body.mass
+            self.physics_engine.apply_force(self.player, self.calculate_gravity())
 
-            grav = pymunk.Vec2d(0, 0)
-
-            for planet in self.planets:
-                planet_pos = self.physics_engine.get_physics_object(
-                    planet
-                ).body.position
-                planet_mass = planet.mass
-                grav_force = (
-                    G
-                    * (planet_mass * player_mass)
-                    / player_pos.get_dist_sqrd(planet_pos)
-                )
-                grav += grav_force * (planet_pos - player_pos).normalized()
-
-            self.physics_engine.apply_force(self.player, grav)
+            # See if the player is on-screen or not
+            self.player.on_screen = (
+                self.player.top < 0
+                or self.player.bottom > SCREEN_HEIGHT
+                or self.player.left < 0
+                or self.player.right > SCREEN_WIDTH
+            )
 
         elif self.player.state == PlayerStates.CRASHED:
             # TODO: Add crash animation here
@@ -216,6 +281,20 @@ class GameView(arcade.View):
             pass
 
         self.physics_engine.step()
+
+    def calculate_gravity(self):
+        player_pos = self.physics_engine.get_physics_object(self.player).body.position
+        player_mass = self.physics_engine.get_physics_object(self.player).body.mass
+        grav = pymunk.Vec2d(0, 0)
+
+        for planet in self.planets:
+            planet_pos = self.physics_engine.get_physics_object(planet).body.position
+            planet_mass = planet.mass
+            grav_force = (
+                G * (planet_mass * player_mass) / player_pos.get_dist_sqrd(planet_pos)
+            )
+            grav += grav_force * (planet_pos - player_pos).normalized()
+        return grav
 
 
 if __name__ == "__main__":
