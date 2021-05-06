@@ -98,12 +98,10 @@ class GameView(arcade.View):
         )
 
     def load_textures(self, path):
-        key_frames = []
-        i = 0
-        for file in sorted(path.glob("*.png")):
-            key_frame = arcade.AnimationKeyframe(i, 0.02, arcade.load_texture(file))
-            i += 1
-        return key_frames
+        return [
+            arcade.AnimationKeyframe(i, 100, arcade.load_texture(file))
+            for i, file in enumerate(sorted(path.glob("*.png")))
+        ]
 
     def setup(self):
 
@@ -111,7 +109,7 @@ class GameView(arcade.View):
         self.planets = arcade.SpriteList()
 
         # planet1 = arcade.Sprite(SPRITE_PATH / "planet.png")
-        planet1 = arcade.AnimatedTimeBasedSprite()
+        planet1 = arcade.AnimatedTimeBasedSprite(SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48)
         planet1.frames = self.load_textures(SPRITE_PATH / "planet1")
         planet1.center_x = 200
         planet1.center_y = 200
@@ -161,10 +159,7 @@ class GameView(arcade.View):
         arcade.draw_lrwh_rectangle_textured(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, self.background_image)
 
         # If we're dragging, we can draw a line between the launcher and the player
-        if (
-            self.player.state == PlayerStates.DRAGGING
-            or self.player.state == PlayerStates.WAITING
-        ):
+        if self.player.state in [PlayerStates.DRAGGING, PlayerStates.WAITING]:
             arcade.draw_line(
                 self.launcher.center_x,
                 self.launcher.center_y,
