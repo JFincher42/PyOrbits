@@ -97,9 +97,9 @@ class GameView(arcade.View):
             collision_type="none",
         )
 
-    def load_textures(self, path):
+    def load_textures(self, path, delay):
         return [
-            arcade.AnimationKeyframe(i, 100, arcade.load_texture(file))
+            arcade.AnimationKeyframe(i, delay, arcade.load_texture(file))
             for i, file in enumerate(sorted(path.glob("*.png")))
         ]
 
@@ -108,21 +108,22 @@ class GameView(arcade.View):
         # Setup the current level
         self.planets = arcade.SpriteList()
 
-        # planet1 = arcade.Sprite(SPRITE_PATH / "planet.png")
         planet1 = arcade.AnimatedTimeBasedSprite(SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48)
-        planet1.frames = self.load_textures(SPRITE_PATH / "planet1")
+        planet1.frames = self.load_textures(SPRITE_PATH / "planet1", 100)
         planet1.center_x = 200
         planet1.center_y = 200
         planet1.mass = 95000.0
         self.planets.append(planet1)
 
-        planet2 = arcade.Sprite(SPRITE_PATH / "planet.png")
+        planet2 = arcade.AnimatedTimeBasedSprite(SPRITE_PATH / "planet2/001.png", image_height=48, image_width=48)
+        planet2.frames = self.load_textures(SPRITE_PATH / "planet2", 90)
         planet2.center_x = 500
         planet2.center_y = 400
         planet2.mass = 80000.0
         self.planets.append(planet2)
 
-        planet3 = arcade.Sprite(SPRITE_PATH / "planet.png")
+        planet3 = arcade.AnimatedTimeBasedSprite(SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48)
+        planet3.frames = self.load_textures(SPRITE_PATH / "planet1", 110)
         planet3.center_x = 800
         planet3.center_y = 200
         planet3.mass = 80000.0
