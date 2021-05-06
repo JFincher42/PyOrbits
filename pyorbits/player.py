@@ -13,6 +13,9 @@ SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 540
 SCREEN_TITLE = "PyOrbits!"
 
+# How wide should lines be, based on distance. Smaller is bigger
+DRAW_STRENGTH = 20
+
 # Gravitational constant
 G = 20
 
@@ -30,39 +33,6 @@ class PlayerStates(Enum):
     FINISH = 6
 
 
-<<<<<<< HEAD
-# Classes
-class Rock(arcade.Sprite):
-    """Encapsulates a Rock object for PyOrbits.
-    Used for both the player object and planets it orbits.
-
-    Assumes Pymunk physics in use
-    """
-
-    def __init__(
-        self, path_to_sprite: str, position: tuple, mass: float, scale: float = 1.0
-    ) -> None:
-        """Initialize the Rock
-
-        Args:
-            path_to_sprite (str): Where is our sprite image
-            position (tuple): Where to place the rock
-            mass (float): How big is the rock
-            scale (float): scaling factor
-        """
-
-        super.__init__(
-            path_to_sprite,
-            center_x=position[0],
-            center_y=position[1],
-            scale=scale
-        )
-
-        self.mass = mass
-
-
-=======
->>>>>>> player_drag
 class GameView(arcade.View):
     """The main game view"""
 
@@ -127,19 +97,25 @@ class GameView(arcade.View):
             collision_type="none",
         )
 
+    def load_textures(self, path):
+        key_frames = []
+        i = 0
+        for file in sorted(path.glob("*.png")):
+            key_frame = arcade.AnimationKeyframe(i, 0.02, arcade.load_texture(file))
+            i += 1
+        return key_frames
+
     def setup(self):
 
         # Setup the current level
         self.planets = arcade.SpriteList()
 
-        planet1 = arcade.Sprite(SPRITE_PATH / "planet.png")
+        # planet1 = arcade.Sprite(SPRITE_PATH / "planet.png")
+        planet1 = arcade.AnimatedTimeBasedSprite()
+        planet1.frames = self.load_textures(SPRITE_PATH / "planet1")
         planet1.center_x = 200
         planet1.center_y = 200
-<<<<<<< HEAD
-        planet1.mass = 70000.0
-=======
         planet1.mass = 95000.0
->>>>>>> player_drag
         self.planets.append(planet1)
 
         planet2 = arcade.Sprite(SPRITE_PATH / "planet.png")
@@ -214,32 +190,35 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time):
         """ Movement and game logic """
-        if self.initial_impulse:
-            print(f"Impulse: {self.initial_impulse}")
-            self.physics_engine.apply_impulse(self.player, self.initial_impulse)
-            self.physics_engine.set_friction(self.player, 0)
-            self.initial_impulse = None
-            input()
 
+        for planet in self.planets:
+            planet.update_animation()
+            planet.update()
+
+        # Chillin', chillin', mindin' my business...
         if self.player.state == PlayerStates.WAITING:
             # Before the level starts
             # Calculate the angle between the launcher and the player
             x_diff = self.launcher.center_x - self.player.center_x
             y_diff = self.launcher.center_y - self.player.center_y
             angle = math.atan2(y_diff, x_diff)
-            # self.launcher.angle = math.degrees(angle)
+            # And do the initial launcher rotation
             self.physics_engine.get_physics_object(self.launcher).body.angle = angle
 
+        # Draggin' the line (draggin' the line)
         elif self.player.state == PlayerStates.DRAGGING:
+            # Second verse, same as the first
             x_diff = self.launcher.center_x - self.player.center_x
             y_diff = self.launcher.center_y - self.player.center_y
             angle = math.atan2(y_diff, x_diff)
             self.physics_engine.get_physics_object(self.launcher).body.angle = angle
 
+            # Used to draw the line between the player and the launcher
             x_diff = self.launcher.center_x - self.player.center_x
             y_diff = self.launcher.center_y - self.player.center_y
-            self.draw_strength = pymunk.Vec2d(x_diff, y_diff).length / 20
+            self.draw_strength = pymunk.Vec2d(x_diff, y_diff).length / DRAW_STRENGTH
 
+        # Drop it like it's hpt
         elif self.player.state == PlayerStates.DROPPED:
             # Calculate impulse
             x_diff = self.launcher.center_x - self.player.center_x
