@@ -6,7 +6,10 @@ import arcade
 import pymunk
 import pathlib
 import math
+import pyorbits.rock
+
 from enum import Enum
+
 
 # Constants
 SCREEN_WIDTH = 960
@@ -42,7 +45,9 @@ class GameView(arcade.View):
         self.level = 1
 
         # Get the background image
-        self.background_image = arcade.load_texture(ASSETS_PATH / "backgrounds" / "BlueStars.png")
+        self.background_image = arcade.load_texture(
+            ASSETS_PATH / "backgrounds" / "BlueStars.png"
+        )
         self.background_color = arcade.color.DARK_MIDNIGHT_BLUE
 
         # Gravity (0,0) is basically no external gravity acting on anything
@@ -108,21 +113,27 @@ class GameView(arcade.View):
         # Setup the current level
         self.planets = arcade.SpriteList()
 
-        planet1 = arcade.AnimatedTimeBasedSprite(SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48)
+        planet1 = arcade.AnimatedTimeBasedSprite(
+            SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48
+        )
         planet1.frames = self.load_textures(SPRITE_PATH / "planet1", 100)
         planet1.center_x = 200
         planet1.center_y = 200
         planet1.mass = 95000.0
         self.planets.append(planet1)
 
-        planet2 = arcade.AnimatedTimeBasedSprite(SPRITE_PATH / "planet2/001.png", image_height=48, image_width=48)
+        planet2 = arcade.AnimatedTimeBasedSprite(
+            SPRITE_PATH / "planet2/001.png", image_height=48, image_width=48
+        )
         planet2.frames = self.load_textures(SPRITE_PATH / "planet2", 90)
         planet2.center_x = 500
         planet2.center_y = 400
         planet2.mass = 80000.0
         self.planets.append(planet2)
 
-        planet3 = arcade.AnimatedTimeBasedSprite(SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48)
+        planet3 = arcade.AnimatedTimeBasedSprite(
+            SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48
+        )
         planet3.frames = self.load_textures(SPRITE_PATH / "planet1", 110)
         planet3.center_x = 800
         planet3.center_y = 200
@@ -157,7 +168,9 @@ class GameView(arcade.View):
 
         # Draw the background image
         arcade.set_background_color(self.background_color)
-        arcade.draw_lrwh_rectangle_textured(0,0,SCREEN_WIDTH, SCREEN_HEIGHT, self.background_image)
+        arcade.draw_lrwh_rectangle_textured(
+            0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background_image
+        )
 
         # If we're dragging, we can draw a line between the launcher and the player
         if self.player.state in [PlayerStates.DRAGGING, PlayerStates.WAITING]:
@@ -183,9 +196,8 @@ class GameView(arcade.View):
             planet.draw()
             planet.draw_hit_box(color=arcade.color.WHITE)
 
-
     def on_update(self, delta_time):
-        """ Movement and game logic """
+        """Movement and game logic"""
 
         for planet in self.planets:
             planet.update_animation()
