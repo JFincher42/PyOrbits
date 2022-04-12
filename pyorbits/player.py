@@ -113,6 +113,7 @@ class GameView(arcade.View):
         # Setup the current level
         self.planets = arcade.SpriteList()
 
+        # TODO: Change AnimatedTimeBasedSprite to my own sprite class, https://api.arcade.academy/en/latest/examples/platform_tutorial/step_12.html for example
         planet1 = arcade.AnimatedTimeBasedSprite(
             SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48
         )
@@ -139,6 +140,12 @@ class GameView(arcade.View):
         planet3.center_y = 200
         planet3.mass = 80000.0
         self.planets.append(planet3)
+
+        self.explosion = arcade.AnimatedTimeBasedSprite(
+            SPRITE_PATH / "explosion/1.png", image_height=32, image_width=32
+        )
+        self.explosion.frames = self.load_textures(SPRITE_PATH / "explosion", 40)
+        self.explode = False
 
         self.physics_engine.add_sprite_list(
             self.planets, friction=0.0, body_type=arcade.PymunkPhysicsEngine.STATIC
@@ -192,9 +199,14 @@ class GameView(arcade.View):
         # Draw the launcher, even if it's faded
         self.launcher.draw()
 
+        # Draw all the planets
         for planet in self.planets:
             planet.draw()
             planet.draw_hit_box(color=arcade.color.WHITE)
+
+        # SHould we draw the explosion
+        if self.explode:
+            self.explosion.draw()
 
     def on_update(self, delta_time):
         """Movement and game logic"""
@@ -261,7 +273,16 @@ class GameView(arcade.View):
 
         elif self.player.state == PlayerStates.CRASHED:
             # TODO: Add crash animation here
-            pass
+            # First, enable the explosion
+
+            self.explosion.center_x = self.player.center_x
+            self.explosion.center_y = self.player.center_y
+
+            # Need to remove the player
+            self.physics_engine.remove_sprite(self.player)
+
+            # Now we need to enable the explosion
+            self.explode = True
 
         elif self.player.state == PlayerStates.FINISH:
             # TODO: Add level end animation here
