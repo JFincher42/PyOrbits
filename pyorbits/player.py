@@ -6,7 +6,7 @@ import arcade
 import pymunk
 import pathlib
 import math
-import pyorbits.rock
+from pyorbits.anisprite import AniSprite
 
 from enum import Enum
 
@@ -113,38 +113,20 @@ class GameView(arcade.View):
         # Setup the current level
         self.planets = arcade.SpriteList()
 
-        # TODO: Change AnimatedTimeBasedSprite to my own sprite class, https://api.arcade.academy/en/latest/examples/platform_tutorial/step_12.html for example
-        planet1 = arcade.AnimatedTimeBasedSprite(
-            SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48
-        )
-        planet1.frames = self.load_textures(SPRITE_PATH / "planet1", 100)
-        planet1.center_x = 200
-        planet1.center_y = 200
-        planet1.mass = 95000.0
+        planet1 = AniSprite(SPRITE_PATH / "planet1", (200, 200), 95000.0, 1.0, 90)
         self.planets.append(planet1)
 
-        planet2 = arcade.AnimatedTimeBasedSprite(
-            SPRITE_PATH / "planet2/001.png", image_height=48, image_width=48
-        )
-        planet2.frames = self.load_textures(SPRITE_PATH / "planet2", 90)
-        planet2.center_x = 500
-        planet2.center_y = 400
-        planet2.mass = 80000.0
+        planet2 = AniSprite(SPRITE_PATH / "planet2", (500, 400), 80000.0, 1.0, 110)
         self.planets.append(planet2)
 
-        planet3 = arcade.AnimatedTimeBasedSprite(
-            SPRITE_PATH / "planet1/001.png", image_height=48, image_width=48
-        )
-        planet3.frames = self.load_textures(SPRITE_PATH / "planet1", 110)
-        planet3.center_x = 800
-        planet3.center_y = 200
-        planet3.mass = 80000.0
+        planet3 = AniSprite(SPRITE_PATH / "planet1", (800, 200), 80000.0, 0.5, 110)
         self.planets.append(planet3)
 
-        self.explosion = arcade.AnimatedTimeBasedSprite(
-            SPRITE_PATH / "explosion/1.png", image_height=32, image_width=32
+        self.explosion = AniSprite(
+            SPRITE_PATH / "explosion", delay=40
         )
-        self.explosion.frames = self.load_textures(SPRITE_PATH / "explosion", 40)
+        self.explosion.repeat_animation = False
+        self.explosion.move_with_gravity = False
         self.explode = False
 
         self.physics_engine.add_sprite_list(
@@ -204,7 +186,7 @@ class GameView(arcade.View):
             planet.draw()
             planet.draw_hit_box(color=arcade.color.WHITE)
 
-        # SHould we draw the explosion
+        # Should we draw the explosion
         if self.explode:
             self.explosion.draw()
 

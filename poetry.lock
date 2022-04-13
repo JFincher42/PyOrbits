@@ -8,7 +8,7 @@ python-versions = ">=3.7"
 
 [package.dependencies]
 pillow = ">=9.0.1,<9.1.0"
-pyglet = "2.0dev2"
+pyglet = "2.0a2"
 pymunk = ">=6.2.1,<6.3.0"
 pytiled-parser = "2.0.1"
 
