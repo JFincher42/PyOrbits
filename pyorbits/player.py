@@ -36,6 +36,10 @@ class PlayerStates(Enum):
     FINISH = 6
 
 
+def player_hit_planet_handler(player_sprite, planet_sprite, _arbiter, _space, _data):
+    player_sprite.state = PlayerStates.CRASHED
+
+
 class GameView(arcade.View):
     """The main game view"""
 
@@ -122,16 +126,19 @@ class GameView(arcade.View):
         planet3 = AniSprite(SPRITE_PATH / "planet1", (800, 200), 80000.0, 0.5, 110)
         self.planets.append(planet3)
 
-        self.explosion = AniSprite(
-            SPRITE_PATH / "explosion", delay=40
-        )
+        self.explosion = AniSprite(SPRITE_PATH / "explosion", delay=40)
         self.explosion.repeat_animation = False
         self.explosion.move_with_gravity = False
         self.explode = False
 
         self.physics_engine.add_sprite_list(
-            self.planets, friction=0.0, body_type=arcade.PymunkPhysicsEngine.STATIC
+            self.planets, friction=0.0, body_type=arcade.PymunkPhysicsEngine.STATIC, collision_type="planet"
         )
+
+        self.physics_engine.add_collision_handler(
+            "player", "planet", post_handler=player_hit_planet_handler
+        )
+
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         if self.player.state == PlayerStates.WAITING and arcade.is_point_in_polygon(
@@ -252,6 +259,14 @@ class GameView(arcade.View):
                 or self.player.left < 0
                 or self.player.right > SCREEN_WIDTH
             )
+
+            # Have we hit a planet?
+            collision_list = arcade.check_for_collision_with_list(
+                self.player, self.planets
+            )
+            if len(collision_list) > 0:
+                # We did, change state
+                self.player.state = PlayerStates().CRASHED
 
         elif self.player.state == PlayerStates.CRASHED:
             # TODO: Add crash animation here

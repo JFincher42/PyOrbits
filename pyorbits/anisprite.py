@@ -80,7 +80,7 @@ class AniSprite(arcade.Sprite):
             # Get the next animation in the sequence
             self.cur_frame_index += 1
 
-            # Are we past the end of the
+            # Are we past the end of the frame list?
             if self.cur_frame_index >= len(self.frames):
                 if self.repeat_animation:
                     self.cur_frame_index = 0
